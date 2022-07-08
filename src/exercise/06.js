@@ -24,7 +24,7 @@ function PokemonInfo({pokemonName}) {
           setState(pre => ({...pre, status: 'done', pokemon: data}))
         })
         .catch(e => {
-          setState(pre => ({...pre, status: 'error', error: e.message}))
+          setState({error: e.message})
         })
     }
   }, [pokemonName])
@@ -34,12 +34,7 @@ function PokemonInfo({pokemonName}) {
   } else if (state.status === 'loading') {
     return <PokemonInfoFallback name={pokemonName} />
   } else if (state.status === 'error') {
-    return (
-      <>
-        <h3>There is an error</h3>
-        <h3>{state.error}</h3>
-      </>
-    )
+    throw new Error(state.error)
   } else {
     return <PokemonDataView pokemon={state.pokemon} />
   }
@@ -56,11 +51,41 @@ function App() {
     <div className="pokemon-info-app">
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
-      <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
-      </div>
+      <ErrorBoundary key={pokemonName}>
+        <div className="pokemon-info">
+          <PokemonInfo pokemonName={pokemonName} />
+        </div>
+      </ErrorBoundary>
     </div>
   )
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      error: null,
+    }
+  }
+
+  static getDerivedStateFromError(error) {
+    return {error: error}
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.log('Error happened: ', error)
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div>
+          <h3>Error happened {this.state.error.message}</h3>
+        </div>
+      )
+    }
+    return this.props.children
+  }
 }
 
 export default App
