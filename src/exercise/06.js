@@ -12,14 +12,20 @@ import {
 function PokemonInfo({pokemonName}) {
   const [pokemon, setPokemon] = useState(null)
   const [status, setStatus] = useState('initial')
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (pokemonName) {
       setStatus('loading')
-      fetchPokemon(pokemonName, 1000).then(data => {
-        setPokemon(data)
-        setStatus('done')
-      })
+      fetchPokemon(pokemonName, 1000)
+        .then(data => {
+          setStatus('done')
+          setPokemon(data)
+        })
+        .catch(e => {
+          setStatus('error')
+          setError(e.message)
+        })
     }
   }, [pokemonName])
 
@@ -27,6 +33,14 @@ function PokemonInfo({pokemonName}) {
     return <h3>Submit a pokemon</h3>
   } else if (status === 'loading') {
     return <PokemonInfoFallback name={pokemonName} />
+  } else if (status === 'error') {
+    console.log(error)
+    return (
+      <>
+        <h3>There is an error</h3>
+        <h3>{error}</h3>
+      </>
+    )
   } else {
     return <PokemonDataView pokemon={pokemon} />
   }
